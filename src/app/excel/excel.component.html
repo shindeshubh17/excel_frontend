@@ -1,0 +1,196 @@
+<div class="excel-module">
+  <!-- Unified, Sleek Top Application Toolbar -->
+  <header class="app-toolbar">
+    <!-- Left Section: Brand & File State -->
+    <div class="toolbar-left">
+      <div class="brand-badge" title="Spreadsheet Studio">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="16" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+      <span class="app-title">Spreadsheet</span>
+      <div class="current-file-box" title="Click or press Enter to rename workbook">
+        <input
+          type="text"
+          class="current-file-input"
+          [(ngModel)]="workbookName"
+          (blur)="onWorkbookNameChanged()"
+          (keydown.enter)="onWorkbookNameInputEnter($event)"
+          placeholder="Untitled Workbook"
+          aria-label="Workbook name"
+        />
+        <svg class="rename-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Center Section: Aligned Selection Toolboxes -->
+    <div class="toolbar-center">
+      <!-- File Selector Toolbox -->
+      <div class="toolbox-field" title="Select workbook">
+        <span class="toolbox-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>File:</span>
+        </span>
+        <select
+          class="toolbox-select"
+          [ngModel]="currentWorkbook?.workbookId"
+          (ngModelChange)="onWorkbookSelected($event)"
+          [disabled]="workbooks.length === 0"
+        >
+          <option [ngValue]="undefined">&mdash; Open File &mdash;</option>
+          <option *ngFor="let w of workbooks" [ngValue]="w.workbookId">{{ w.name }}</option>
+        </select>
+        <svg class="toolbox-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <!-- Version Selector Toolbox -->
+      <div class="toolbox-field" title="Select version history">
+        <span class="toolbox-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+          <span>Version:</span>
+        </span>
+        <select
+          class="toolbox-select"
+          [(ngModel)]="selectedVersionId"
+          (ngModelChange)="onVersionSelected($event)"
+          [disabled]="versions.length === 0"
+        >
+          <option *ngIf="versions.length === 0" [ngValue]="null">&mdash; None &mdash;</option>
+          <option *ngFor="let v of versions" [ngValue]="v.versionId" [title]="v.comments ? ('V' + v.versionNumber + ': ' + v.comments) : ('V' + v.versionNumber)">
+            V{{ v.versionNumber }}<ng-container *ngIf="v.comments"> &bull; {{ v.comments }}</ng-container> ({{ v.createdDate | date: 'shortTime' }})
+          </option>
+        </select>
+        <svg class="toolbox-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Right Section: Action Tool Buttons -->
+    <div class="toolbar-right">
+      <button class="tool-btn" (click)="triggerFileChoose()" title="Upload .xlsx file">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span class="btn-text">Upload</span>
+      </button>
+      <input #fileInput type="file" accept=".xlsx,.csv" style="display: none" (change)="onFileChosen($event)" />
+
+      <button class="tool-btn" (click)="newWorkbook()" title="Create blank workbook">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+        <span class="btn-text">New</span>
+      </button>
+
+      <button class="tool-btn" (click)="addSheet()" title="Add worksheet">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span class="btn-text">+ Sheet</span>
+      </button>
+
+      <button class="tool-btn" (click)="downloadCurrent()" title="Download as .xlsx">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="btn-text">Download</span>
+      </button>
+
+      <div class="tool-divider"></div>
+
+      <button class="tool-btn tool-btn-primary" (click)="save()" [disabled]="isSaving" title="Save new version">
+        <span class="btn-spinner" *ngIf="isSaving"></span>
+        <svg *ngIf="!isSaving" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span>{{ isSaving ? 'Saving…' : 'Save' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Non-intrusive Floating Status Toast -->
+  <aside class="floating-toast" *ngIf="statusMessage" role="status" aria-live="polite">
+    <div class="toast-body">
+      <span class="toast-dot"></span>
+      <span class="toast-message">{{ statusMessage }}</span>
+    </div>
+    <button class="toast-close-btn" (click)="dismissStatus()" aria-label="Close notification">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- Loading Backdrop Overlay -->
+  <div class="busy-overlay" *ngIf="isLoading" aria-hidden="true">
+    <div class="busy-card">
+      <div class="busy-spinner"></div>
+      <span class="busy-label">Loading workbook…</span>
+    </div>
+  </div>
+
+  <!-- Save Version Modal Dialog with Optional Comment -->
+  <div class="modal-backdrop" *ngIf="showSaveModal" (click)="closeSaveModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Save Version</h3>
+        <button class="modal-close-btn" (click)="closeSaveModal()" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="modal-label">Workbook Name</label>
+        <input
+          type="text"
+          class="modal-input"
+          [(ngModel)]="workbookName"
+          placeholder="Untitled Workbook"
+        />
+
+        <label class="modal-label">Version Comment / Note (optional)</label>
+        <input
+          type="text"
+          class="modal-input"
+          [(ngModel)]="versionComment"
+          (keydown.enter)="confirmSave()"
+          placeholder="e.g. Added Q3 sales, Updated totals"
+          autofocus
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-secondary" (click)="closeSaveModal()">Cancel</button>
+        <button class="modal-btn modal-btn-primary" (click)="confirmSave()" [disabled]="isSaving">
+          <span class="btn-spinner" *ngIf="isSaving"></span>
+          <span>{{ isSaving ? 'Saving…' : 'Save Version' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spreadsheet Workspace Container -->
+  <main #univerContainer class="univer-host"></main>
+</div>
