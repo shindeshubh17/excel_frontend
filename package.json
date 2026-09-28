@@ -30,6 +30,7 @@
     "@univerjs/sheets-numfmt": "^1.0.2",
     "@univerjs/sheets-ui": "^1.0.2",
     "@univerjs/ui": "^1.0.2",
+    "exceljs": "^4.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5"

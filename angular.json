@@ -34,7 +34,8 @@
               "react-dom/client",
               "async-lock",
               "ot-json1",
-              "fast-diff"
+              "fast-diff",
+              "exceljs"
             ]
           },
             "configurations": {

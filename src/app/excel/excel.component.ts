@@ -91,6 +91,9 @@ export class ExcelComponent implements AfterViewInit, OnDestroy {
       presets: [
         UniverSheetsCorePreset({
           container: this.univerContainer.nativeElement,
+          formula: {
+            initialFormulaComputing: 0,
+          },
         }),
       ],
     });
@@ -156,9 +159,9 @@ export class ExcelComponent implements AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
 
     file.arrayBuffer()
-      .then((buffer) => {
+      .then(async (buffer) => {
         const id = `wb-${Date.now()}`;
-        const snapshot = xlsxToWorkbookData(buffer, id);
+        const snapshot = await xlsxToWorkbookData(buffer, id);
 
         const active = this.univerAPI?.getActiveWorkbook?.();
         if (active) {
@@ -269,14 +272,14 @@ export class ExcelComponent implements AfterViewInit, OnDestroy {
     this.openSaveModal();
   }
 
-  executeSave(comment?: string): void {
+  async executeSave(comment?: string): Promise<void> {
     this.isSaving = true;
     this.cdr.detectChanges();
 
     try {
       const active = this.univerAPI?.getActiveWorkbook?.();
       const snapshot = active?.save?.();
-      const xlsxBuffer = workbookDataToXlsxArrayBuffer(snapshot);
+      const xlsxBuffer = await workbookDataToXlsxArrayBuffer(snapshot);
       const fileBase64 = this.arrayBufferToBase64(xlsxBuffer);
 
       const isNew = !this.currentWorkbook?.workbookId;
@@ -416,10 +419,10 @@ export class ExcelComponent implements AfterViewInit, OnDestroy {
     this.workbookService
       .getVersionFile(this.currentWorkbook.workbookId, versionId)
       .subscribe({
-        next: (fileData) => {
+        next: async (fileData) => {
           try {
             const buffer = this.base64ToArrayBuffer(fileData.fileBase64);
-            const snapshot = xlsxToWorkbookData(buffer, this.currentWorkbook!.workbookId);
+            const snapshot = await xlsxToWorkbookData(buffer, this.currentWorkbook!.workbookId);
 
             const active = this.univerAPI?.getActiveWorkbook?.();
             if (active) {
